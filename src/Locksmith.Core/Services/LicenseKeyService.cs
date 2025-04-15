@@ -3,20 +3,25 @@ using System.Text;
 using System.Text.Json;
 using Locksmith.Core.Models;
 using Locksmith.Core.Utils;
+using Locksmith.Core.Validation;
 
 namespace Locksmith.Core.Services;
 
 public class LicenseKeyService
 {
     private readonly byte[] _secretKey;
+    private readonly ILicenseValidator _licenseValidator;
 
-    public LicenseKeyService(string secretKey)
+    public LicenseKeyService(string secretKey, ILicenseValidator licenseValidator = null)
     {
+        _licenseValidator = licenseValidator ?? new DefaultLicenseValidator();
         _secretKey = Encoding.UTF8.GetBytes(secretKey);
     }
 
     public string Generate(LicenseInfo licenseInfo)
     {
+        _licenseValidator.Validate(licenseInfo);
+        
         var payloadJson = JsonSerializer.Serialize(licenseInfo);
         var payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
         

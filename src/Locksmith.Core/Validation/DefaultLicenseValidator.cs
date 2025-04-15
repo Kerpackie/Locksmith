@@ -3,7 +3,7 @@ using Locksmith.Core.Models;
 
 namespace Locksmith.Core.Validation;
 
-public class DefaultLicenseValidation : ILicenseValidator
+public class DefaultLicenseValidator : ILicenseValidator
 {
     public void Validate(LicenseInfo licenseInfo)
     {
