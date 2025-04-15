@@ -68,7 +68,14 @@ public class LicenseKeyServiceTests
     public void Validate_Should_Fail_For_ExpiredLicence()
     {
         // Arrange
-        var service = new LicenseKeyService(SecretKey);
+        
+        var options = new LicenseValidationOptions
+        {
+            ValidateLicenseFields = false
+        };
+
+        var service = CreateService(options);
+
         var license = CreateTestLicense(DateTime.UtcNow.AddDays(-1)); // Expired licence
         
         // Act
@@ -97,7 +104,13 @@ public class LicenseKeyServiceTests
     [Fact]
     public void ValidationResult_Should_Set_IsExpired_Flag_Correctly()
     {
-        var service = new LicenseKeyService(SecretKey);
+        var options = new LicenseValidationOptions
+        {
+            ValidateLicenseFields = false
+        };
+
+        var service = CreateService(options);
+
         var license = CreateTestLicense(DateTime.UtcNow.AddDays(-5)); // Expired
 
         var key = service.Generate(license);

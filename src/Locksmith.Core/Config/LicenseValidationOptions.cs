@@ -12,5 +12,5 @@ public class LicenseValidationOptions
     /// </summary>
     public TimeSpan ClockSkew { get; set; } = TimeSpan.FromMinutes(5);
     
-    public bool ValidateLicenseFields { get; set; } = false;
+    public bool ValidateLicenseFields { get; set; } = true;
 }

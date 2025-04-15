@@ -25,7 +25,10 @@ public class LicenseKeyService
 
     public string Generate(LicenseInfo licenseInfo)
     {
-        _licenseValidator.Validate(licenseInfo);
+        if (_options.ValidateLicenseFields)
+        {
+            _licenseValidator.Validate(licenseInfo);
+        }
         
         var payloadJson = JsonSerializer.Serialize(licenseInfo);
         var payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
