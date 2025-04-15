@@ -69,17 +69,17 @@ public class LicenseKeyServiceTests
     }
 
     [Fact]
-    public void Validate_Should_Fail_For_InvalidBase64()
+    public void Validate_Should_Fail_For_InvalidBase58()
     {
-        // Arrange
         var service = new LicenseKeyService(SecretKey);
-        
-        // Act
-        var result = service.Validate("ThisIsn'tBase64?!");
-        
-        // Assert
+
+        // Includes characters not in the Base58 alphabet
+        var invalidKey = "0OIl+/";
+
+        var result = service.Validate(invalidKey);
+
         Assert.False(result.IsValid);
-        Assert.Equal("Validation failed: The input is not a valid Base-64 string as it contains a non-base 64 character, more than two padding characters, or an illegal character among the padding characters.", result.Error);
+        Assert.StartsWith("Validation failed", result.Error);
     }
     
 }

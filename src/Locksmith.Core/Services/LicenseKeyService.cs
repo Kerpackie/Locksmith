@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Locksmith.Core.Models;
+using Locksmith.Core.Utils;
 
 namespace Locksmith.Core.Services;
 
@@ -16,34 +17,34 @@ public class LicenseKeyService
 
     public string Generate(LicenseInfo licenseInfo)
     {
-        string payloadJson = JsonSerializer.Serialize(licenseInfo);
-        byte[] payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
+        var payloadJson = JsonSerializer.Serialize(licenseInfo);
+        var payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
         
-        byte[] signatureBytes = ComputeHmac(payloadBytes);
-        byte[] combined = Combine(payloadBytes, signatureBytes);
+        var signatureBytes = ComputeHmac(payloadBytes);
+        var combined = Combine(payloadBytes, signatureBytes);
         
-        return Convert.ToBase64String(combined);
+        return Base58Encoder.Encode(combined);
     }
     
     public ValidationResult Validate(string licenseKey)
     {
         try
         {
-            byte[] combined = Convert.FromBase64String(licenseKey);
+            var combined = Base58Encoder.Decode(licenseKey);
             
             // Assume at least 32 bytes are HMAC-SHA256
-            int sigLength = 32;
-            byte[] payloadBytes = combined[..^sigLength];
-            byte[] signatureBytes = combined[^sigLength..];
+            var sigLength = 32;
+            var payloadBytes = combined[..^sigLength];
+            var signatureBytes = combined[^sigLength..];
             
-            byte[] expectedSignature = ComputeHmac(payloadBytes);
+            var expectedSignature = ComputeHmac(payloadBytes);
 
             if (!CryptographicOperations.FixedTimeEquals(signatureBytes, expectedSignature))
             {
                 return ValidationResult.Invalid("Invalid signature.");
             }
             
-            string payloadJson = Encoding.UTF8.GetString(payloadBytes);
+            var payloadJson = Encoding.UTF8.GetString(payloadBytes);
             var licenseInfo = JsonSerializer.Deserialize<LicenseInfo>(payloadJson);
 
             if (licenseInfo.ExpirationDate is DateTime expiryDate && expiryDate < DateTime.UtcNow)
@@ -67,7 +68,7 @@ public class LicenseKeyService
     
     private byte[] Combine(byte[] payloadBytes, byte[] signatureBytes)
     {
-        byte[] result = new byte[payloadBytes.Length + signatureBytes.Length];
+        var result = new byte[payloadBytes.Length + signatureBytes.Length];
         
         Buffer.BlockCopy(payloadBytes, 0, result, 0, payloadBytes.Length);
         Buffer.BlockCopy(signatureBytes, 0, result, payloadBytes.Length, signatureBytes.Length);
