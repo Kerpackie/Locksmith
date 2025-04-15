@@ -7,7 +7,7 @@ public class LicenseKeyServiceTests
 {
     private const string SecretKey = "Shhhh!SuperSecretKey123DontTellAnyone!";
 
-    private LicenseInfo CreateTestLicence(DateTime? expiration = null)
+    private LicenseInfo CreateTestLicense(DateTime? expiration = null)
     {
         return new LicenseInfo
         {
@@ -22,7 +22,7 @@ public class LicenseKeyServiceTests
     {
         // Arrange
         var service = new LicenseKeyService(SecretKey);
-        var license = CreateTestLicence(DateTime.UtcNow.AddDays(10));
+        var license = CreateTestLicense(DateTime.UtcNow.AddDays(10));
         
         // Act
         var key = service.Generate(license);
@@ -39,7 +39,7 @@ public class LicenseKeyServiceTests
     {
         // Arrange
         var service = new LicenseKeyService(SecretKey);
-        var license = CreateTestLicence(DateTime.UtcNow.AddDays(10));
+        var license = CreateTestLicense(DateTime.UtcNow.AddDays(10));
         
         // Act
         var key = service.Generate(license);
@@ -57,7 +57,7 @@ public class LicenseKeyServiceTests
     {
         // Arrange
         var service = new LicenseKeyService(SecretKey);
-        var license = CreateTestLicence(DateTime.UtcNow.AddDays(-1)); // Expired licence
+        var license = CreateTestLicense(DateTime.UtcNow.AddDays(-1)); // Expired licence
         
         // Act
         var key = service.Generate(license);
@@ -81,5 +81,55 @@ public class LicenseKeyServiceTests
         Assert.False(result.IsValid);
         Assert.StartsWith("Validation failed", result.Error);
     }
+    
+    [Fact]
+    public void ValidationResult_Should_Set_IsExpired_Flag_Correctly()
+    {
+        var service = new LicenseKeyService(SecretKey);
+        var license = CreateTestLicense(DateTime.UtcNow.AddDays(-5)); // Expired
+
+        var key = service.Generate(license);
+        var result = service.Validate(key);
+
+        Assert.False(result.IsValid);
+        Assert.True(result.IsExpired);
+        Assert.False(result.IsTampered);
+        Assert.NotNull(result.LicenseInfo);
+        Assert.Equal("Alice Example", result.LicenseInfo.Name);
+    }
+
+    [Fact]
+    public void ValidationResult_Should_Set_IsTampered_Flag_Correctly()
+    {
+        var service = new LicenseKeyService(SecretKey);
+        var license = CreateTestLicense(DateTime.UtcNow.AddDays(5)); // Valid
+
+        var key = service.Generate(license);
+
+        // Flip last few characters
+        var tamperedKey = key.Substring(0, key.Length - 2) + "ZZ";
+
+        var result = service.Validate(tamperedKey);
+
+        Assert.False(result.IsValid);
+        Assert.True(result.IsTampered);
+        Assert.False(result.IsExpired);
+        Assert.NotNull(result.LicenseInfo); // Should still have partial info
+        Assert.Equal("Alice Example", result.LicenseInfo.Name);
+    }
+
+    [Fact]
+    public void ValidationResult_Should_Set_IsMalformed_Flag_When_Decode_Fails()
+    {
+        var service = new LicenseKeyService(SecretKey);
+        var result = service.Validate("$$$notvalidbase58###");
+
+        Assert.False(result.IsValid);
+        Assert.True(result.IsMalformed);
+        Assert.False(result.IsExpired);
+        Assert.False(result.IsTampered);
+        Assert.Null(result.LicenseInfo);
+    }
+
     
 }

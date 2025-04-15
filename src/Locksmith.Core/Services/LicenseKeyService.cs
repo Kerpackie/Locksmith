@@ -31,27 +31,26 @@ public class LicenseKeyService
         try
         {
             var combined = Base58Encoder.Decode(licenseKey);
-            
-            // Assume at least 32 bytes are HMAC-SHA256
+
             var sigLength = 32;
             var payloadBytes = combined[..^sigLength];
             var signatureBytes = combined[^sigLength..];
-            
-            var expectedSignature = ComputeHmac(payloadBytes);
 
+            var payloadJson = Encoding.UTF8.GetString(payloadBytes);
+            
+            var licenseInfo = JsonSerializer.Deserialize<LicenseInfo>(payloadJson);
+
+            var expectedSignature = ComputeHmac(payloadBytes);
             if (!CryptographicOperations.FixedTimeEquals(signatureBytes, expectedSignature))
             {
-                return ValidationResult.Invalid("Invalid signature.");
+                return ValidationResult.Invalid("Invalid signature.", licenseInfo);
             }
-            
-            var payloadJson = Encoding.UTF8.GetString(payloadBytes);
-            var licenseInfo = JsonSerializer.Deserialize<LicenseInfo>(payloadJson);
 
             if (licenseInfo.ExpirationDate is DateTime expiryDate && expiryDate < DateTime.UtcNow)
             {
-                return ValidationResult.Invalid("License has expired.");
+                return ValidationResult.Invalid("License has expired.", licenseInfo);
             }
-            
+
             return ValidationResult.Valid(licenseInfo);
         }
         catch (Exception exception)
@@ -59,6 +58,7 @@ public class LicenseKeyService
             return ValidationResult.Invalid($"Validation failed: {exception.Message}");
         }
     }
+
     
     private byte[] ComputeHmac(byte[] payloadBytes)
     {

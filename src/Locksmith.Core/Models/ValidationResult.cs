@@ -3,20 +3,24 @@ namespace Locksmith.Core.Models;
 public class ValidationResult
 {
     public bool IsValid { get; }
-    public string? Error { get; }
+    public string Error { get; }
     public LicenseInfo LicenseInfo { get; }
 
-    private ValidationResult(bool isValid, string? error, LicenseInfo licenseInfo)
+    // Classification flags
+    public bool IsExpired => Error == "License has expired.";
+    public bool IsTampered => Error == "Invalid signature.";
+    public bool IsMalformed => Error != null && Error.StartsWith("Validation failed");
+
+    private ValidationResult(bool isValid, string error, LicenseInfo licenseInfo)
     {
         IsValid = isValid;
         Error = error;
         LicenseInfo = licenseInfo;
     }
-    
-    public static ValidationResult Valid(LicenseInfo licenseInfo) 
-        => new ValidationResult(true, null, licenseInfo);
-    
-    public static ValidationResult Invalid(string error) 
-        => new ValidationResult(false, error, new LicenseInfo());
-    
+
+    public static ValidationResult Valid(LicenseInfo info) =>
+        new ValidationResult(true, null, info);
+
+    public static ValidationResult Invalid(string error, LicenseInfo partialInfo = null) =>
+        new ValidationResult(false, error, partialInfo);
 }
