@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Locksmith.Core.Config;
+using Locksmith.Core.Exceptions;
 using Locksmith.Core.Models;
 using Locksmith.Core.Utils;
 using Locksmith.Core.Validation;
@@ -11,12 +13,15 @@ public class LicenseKeyService
 {
     private readonly byte[] _secretKey;
     private readonly ILicenseValidator _licenseValidator;
+    private readonly LicenseValidationOptions _options;
 
-    public LicenseKeyService(string secretKey, ILicenseValidator licenseValidator = null)
+    public LicenseKeyService(string secretKey, LicenseValidationOptions options = null, ILicenseValidator validator = null)
     {
-        _licenseValidator = licenseValidator ?? new DefaultLicenseValidator();
         _secretKey = Encoding.UTF8.GetBytes(secretKey);
+        _options = options ?? new LicenseValidationOptions();
+        _licenseValidator = validator ?? new DefaultLicenseValidator(_options);
     }
+
 
     public string Generate(LicenseInfo licenseInfo)
     {
@@ -31,6 +36,20 @@ public class LicenseKeyService
         return Base58Encoder.Encode(combined);
     }
     
+    public LicenseGenerationResult TryGenerate(LicenseInfo licenseInfo)
+    {
+        try
+        {
+            var key = Generate(licenseInfo); // uses existing method
+            return LicenseGenerationResult.Ok(key);
+        }
+        catch (LicenseValidationException ex)
+        {
+            return LicenseGenerationResult.Fail(ex.Message);
+        }
+    }
+
+    
     public ValidationResult Validate(string licenseKey)
     {
         try
@@ -42,7 +61,7 @@ public class LicenseKeyService
             var signatureBytes = combined[^sigLength..];
 
             var payloadJson = Encoding.UTF8.GetString(payloadBytes);
-            
+
             var licenseInfo = JsonSerializer.Deserialize<LicenseInfo>(payloadJson);
 
             var expectedSignature = ComputeHmac(payloadBytes);
@@ -55,8 +74,17 @@ public class LicenseKeyService
             {
                 return ValidationResult.Invalid("License has expired.", licenseInfo);
             }
+            
+            if (_options.ValidateLicenseFields)
+            {
+                _licenseValidator.Validate(licenseInfo);
+            }
 
             return ValidationResult.Valid(licenseInfo);
+        }
+        catch (LicenseValidationException ex)
+        {
+            return ValidationResult.Invalid(ex.Message);
         }
         catch (Exception exception)
         {
