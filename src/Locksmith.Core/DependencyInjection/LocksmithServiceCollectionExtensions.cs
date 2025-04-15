@@ -1,4 +1,5 @@
 using Locksmith.Core.Config;
+using Locksmith.Core.Machine;
 using Locksmith.Core.Security;
 using Locksmith.Core.Services;
 using Locksmith.Core.Validation;
@@ -52,7 +53,8 @@ public static class LocksmithServiceCollectionExtensions
         services.AddSingleton<ILicenseValidator>(sp =>
         {
             var opts = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
-            return new DefaultLicenseValidator(opts);
+            var fingerprint = sp.GetRequiredService<IMachineFingerprintProvider>();
+            return new DefaultLicenseValidator(opts, fingerprint);
         });
 
         // Add the LicenseKeyService to the service collection as a transient service.

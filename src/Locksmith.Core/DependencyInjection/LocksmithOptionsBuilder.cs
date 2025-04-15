@@ -1,4 +1,5 @@
 using Locksmith.Core.Config;
+using Locksmith.Core.Machine;
 using Locksmith.Core.Security;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,8 @@ public class LocksmithOptionsBuilder
     /// This is an internal property and is not directly accessible outside the class.
     /// </summary>
     internal ISecretProvider? SecretProvider { get; private set; }
+    
+    internal IMachineFingerprintProvider? FingerprintProvider { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocksmithOptionsBuilder"/> class
@@ -56,6 +59,12 @@ public class LocksmithOptionsBuilder
     public LocksmithOptionsBuilder ConfigureValidationOptions(Action<LicenseValidationOptions> configure)
     {
         ValidationOptions = configure;
+        return this;
+    }
+    
+    public LocksmithOptionsBuilder UseMachineFingerprintProvider(IMachineFingerprintProvider provider)
+    {
+        FingerprintProvider = provider;
         return this;
     }
 }

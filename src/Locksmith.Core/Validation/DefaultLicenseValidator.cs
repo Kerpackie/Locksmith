@@ -1,5 +1,6 @@
 using Locksmith.Core.Config;
 using Locksmith.Core.Exceptions;
+using Locksmith.Core.Machine;
 using Locksmith.Core.Models;
 
 namespace Locksmith.Core.Validation;
@@ -15,12 +16,15 @@ public class DefaultLicenseValidator : ILicenseValidator
     /// </summary>
     private readonly LicenseValidationOptions _options;
 
+    private readonly IMachineFingerprintProvider _fingerprintProvider;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultLicenseValidator"/> class.
     /// </summary>
     /// <param name="options">The license validation options. If null, default options are used.</param>
-    public DefaultLicenseValidator(LicenseValidationOptions options = null)
+    public DefaultLicenseValidator(LicenseValidationOptions options = null, IMachineFingerprintProvider fingerprintProvider = null)
     {
+        _fingerprintProvider = fingerprintProvider ?? new DefaultMachineFingerprintProvider();
         _options = options ?? new LicenseValidationOptions();
     }
 
@@ -45,6 +49,14 @@ public class DefaultLicenseValidator : ILicenseValidator
 
         if (licenseInfo.ExpirationDate.HasValue && licenseInfo.ExpirationDate.Value < DateTime.UtcNow - _options.ClockSkew)
             Handle("Expiration date is in the past.");
+        
+        if (!string.IsNullOrWhiteSpace(licenseInfo.MachineId))
+        {
+            var actualMachineId = _fingerprintProvider.GetMachineId();
+            if (!string.Equals(actualMachineId, licenseInfo.MachineId, StringComparison.OrdinalIgnoreCase))
+                throw new LicenseValidationException("Machine binding mismatch.");
+        }
+
     }
 
     /// <summary>

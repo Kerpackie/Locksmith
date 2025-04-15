@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Locksmith.Core.Config;
+using Locksmith.Core.Machine;
 using Locksmith.Core.Models;
 using Locksmith.Core.Security;
 using Locksmith.Core.Services;
@@ -51,6 +52,12 @@ public abstract class TestBase
                 return new DefaultLicenseValidator(opts);
             });
         }
+        
+        if (!services.Any(sd => sd.ServiceType == typeof(IMachineFingerprintProvider)))
+        {
+            services.AddSingleton<IMachineFingerprintProvider>(new DefaultMachineFingerprintProvider());
+        }
+
 
         services.AddTransient<LicenseKeyService>();
         return services.BuildServiceProvider();
