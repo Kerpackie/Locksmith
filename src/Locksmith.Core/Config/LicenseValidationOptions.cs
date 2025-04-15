@@ -25,4 +25,6 @@ public class LicenseValidationOptions
     /// validated during the validation process.
     /// </summary>
     public bool ValidateLicenseFields { get; set; } = true;
+
+    public bool EnforceMachineBinding { get; set; } = false;
 }

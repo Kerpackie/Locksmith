@@ -16,4 +16,9 @@ public class LicenseInfo
     /// The expiration date of the licence. Null means no expiration.
     /// </summary>
     public DateTime? ExpirationDate { get; set; }
+
+    /// <summary>
+    /// Optional machine binding value (Eg. hashed MAC, fingerprint, etc.).
+    /// </summary>
+    public string? MachineId { get; set; }
 }
