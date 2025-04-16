@@ -38,6 +38,7 @@ public class DefaultLicenseValidator : ILicenseValidator
         ValidatePresence(licenseInfo);
         ValidateExpiration(licenseInfo);
         ValidateLicenseTypeRules(licenseInfo);
+        ValidateLicenseScopes(licenseInfo);
     }
 
     private void ValidatePresence(LicenseInfo licenseInfo)
@@ -81,6 +82,17 @@ public class DefaultLicenseValidator : ILicenseValidator
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(licenseInfo.Type), licenseInfo.Type, "Unsupported license type.");
+        }
+    }
+
+    private void ValidateLicenseScopes(LicenseInfo licenseInfo)
+    {
+        if (_options.EnforceScopes && _options.RequiredScopes?.Count > 0)
+        {
+            if (licenseInfo.Scopes == null || !_options.RequiredScopes.All(s => licenseInfo.Scopes.Contains(s)))
+            {
+                Handle("Required license scopes not present.");
+            }
         }
     }
 

@@ -21,4 +21,6 @@ public class LicenseInfo
     
     public LicenseType Type { get; set; } = LicenseType.Full;
 
+    public List<string>? Scopes { get; set; }
+
 }

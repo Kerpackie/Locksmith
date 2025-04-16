@@ -58,4 +58,16 @@ public class LocksmithOptionsBuilder
         ValidationOptions = configure;
         return this;
     }
+    
+    public LocksmithOptionsBuilder RequireScopes(params string[] scopes)
+    {
+        ConfigureValidationOptions(opt =>
+        {
+            opt.EnforceScopes = true;
+            opt.RequiredScopes = scopes.ToList();
+        });
+
+        return this;
+    }
+
 }

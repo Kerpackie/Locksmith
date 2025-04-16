@@ -27,4 +27,7 @@ public class LicenseValidationOptions
     public bool ValidateLicenseFields { get; set; } = true;
 
     public bool EnforceLicenseTypeRules { get; set; } = false;
+
+    public bool EnforceScopes { get; set; } = false;
+    public List<string>? RequiredScopes { get; set; }
 }
