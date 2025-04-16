@@ -1,3 +1,5 @@
+using Locksmith.Core.Enums;
+
 namespace Locksmith.Core.Models;
 
 public class LicenseInfo
@@ -16,4 +18,7 @@ public class LicenseInfo
     /// The expiration date of the licence. Null means no expiration.
     /// </summary>
     public DateTime? ExpirationDate { get; set; }
+    
+    public LicenseType Type { get; set; } = LicenseType.Full;
+
 }

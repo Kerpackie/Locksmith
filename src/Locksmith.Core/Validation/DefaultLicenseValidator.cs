@@ -1,4 +1,5 @@
 using Locksmith.Core.Config;
+using Locksmith.Core.Enums;
 using Locksmith.Core.Exceptions;
 using Locksmith.Core.Models;
 
@@ -34,6 +35,13 @@ public class DefaultLicenseValidator : ILicenseValidator
     /// </exception>
     public void Validate(LicenseInfo licenseInfo)
     {
+        ValidatePresence(licenseInfo);
+        ValidateExpiration(licenseInfo);
+        ValidateLicenseTypeRules(licenseInfo);
+    }
+
+    private void ValidatePresence(LicenseInfo licenseInfo)
+    {
         if (licenseInfo == null)
             Handle("License information is missing.");
 
@@ -42,10 +50,40 @@ public class DefaultLicenseValidator : ILicenseValidator
 
         if (string.IsNullOrWhiteSpace(licenseInfo.ProductId))
             Handle("Product ID is required.");
-
-        if (licenseInfo.ExpirationDate.HasValue && licenseInfo.ExpirationDate.Value < DateTime.UtcNow - _options.ClockSkew)
-            Handle("Expiration date is in the past.");
     }
+
+    private void ValidateExpiration(LicenseInfo licenseInfo)
+    {
+        if (licenseInfo.ExpirationDate.HasValue &&
+            licenseInfo.ExpirationDate.Value < DateTime.UtcNow - _options.ClockSkew)
+        {
+            Handle("Expiration date is in the past.");
+        }
+    }
+
+    private void ValidateLicenseTypeRules(LicenseInfo licenseInfo)
+    {
+        if (!_options.EnforceLicenseTypeRules)
+            return;
+
+        switch (licenseInfo.Type)
+        {
+            case LicenseType.Trial when !licenseInfo.ExpirationDate.HasValue:
+                Handle("Trial licenses must have an expiration date.");
+                break;
+            case LicenseType.Subscription when !licenseInfo.ExpirationDate.HasValue:
+                Handle("Subscription licenses must have an expiration date.");
+                break;
+            case LicenseType.Full:
+            case LicenseType.OEM:
+            case LicenseType.Enterprise:
+            case LicenseType.Academic:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(licenseInfo.Type), licenseInfo.Type, "Unsupported license type.");
+        }
+    }
+
 
     /// <summary>
     /// Handles validation errors by throwing a <see cref="LicenseValidationException"/>.
@@ -56,4 +94,5 @@ public class DefaultLicenseValidator : ILicenseValidator
     {
         throw new LicenseValidationException(message);
     }
+    
 }
