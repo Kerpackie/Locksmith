@@ -41,6 +41,11 @@ public class DefaultLicenseValidator : ILicenseValidator
         ValidateLicenseScopes(licenseInfo);
     }
 
+    /// <summary>
+    /// Validates the presence of required fields in the license information.
+    /// </summary>
+    /// <param name="licenseInfo">The license information to validate.</param>
+    /// <exception cref="LicenseValidationException">Thrown if required fields are missing.</exception>
     private void ValidatePresence(LicenseInfo licenseInfo)
     {
         if (licenseInfo == null)
@@ -53,6 +58,11 @@ public class DefaultLicenseValidator : ILicenseValidator
             Handle("Product ID is required.");
     }
 
+    /// <summary>
+    /// Validates the expiration date of the license.
+    /// </summary>
+    /// <param name="licenseInfo">The license information to validate.</param>
+    /// <exception cref="LicenseValidationException">Thrown if the expiration date is in the past.</exception>
     private void ValidateExpiration(LicenseInfo licenseInfo)
     {
         if (licenseInfo.ExpirationDate.HasValue &&
@@ -62,6 +72,11 @@ public class DefaultLicenseValidator : ILicenseValidator
         }
     }
 
+    /// <summary>
+    /// Validates the license type rules based on the license type.
+    /// </summary>
+    /// <param name="licenseInfo">The license information to validate.</param>
+    /// <exception cref="LicenseValidationException">Thrown if license type rules are violated.</exception>
     private void ValidateLicenseTypeRules(LicenseInfo licenseInfo)
     {
         if (!_options.EnforceLicenseTypeRules)
@@ -85,6 +100,11 @@ public class DefaultLicenseValidator : ILicenseValidator
         }
     }
 
+    /// <summary>
+    /// Validates the license scopes to ensure all required scopes are present.
+    /// </summary>
+    /// <param name="licenseInfo">The license information to validate.</param>
+    /// <exception cref="LicenseValidationException">Thrown if required scopes are missing.</exception>
     private void ValidateLicenseScopes(LicenseInfo licenseInfo)
     {
         if (_options.EnforceScopes && _options.RequiredScopes?.Count > 0)
@@ -96,7 +116,6 @@ public class DefaultLicenseValidator : ILicenseValidator
         }
     }
 
-
     /// <summary>
     /// Handles validation errors by throwing a <see cref="LicenseValidationException"/>.
     /// </summary>
@@ -106,5 +125,4 @@ public class DefaultLicenseValidator : ILicenseValidator
     {
         throw new LicenseValidationException(message);
     }
-    
 }
