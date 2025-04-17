@@ -5,6 +5,7 @@ using System.Text.Json;
 using Locksmith.Core.Config;
 using Locksmith.Core.Exceptions;
 using Locksmith.Core.Models;
+using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
 using Locksmith.Core.Utils;
 using Locksmith.Core.Validation;
@@ -22,21 +23,25 @@ public class LicenseKeyService
     private readonly ISecretProvider _secretProvider;
     private readonly ILicenseValidator _licenseValidator;
     private readonly LicenseValidationOptions _options;
+    private readonly ILicenseRevocationProvider? _revocationProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LicenseKeyService"/> class.
     /// </summary>
     /// <param name="secretProvider">The secret provider used for HMAC operations.</param>
-    /// <param name="licenseValidator">The license validator for validating license fields.</param>
+    /// <param name="validator">The license validator for validating license fields.</param>
     /// <param name="options">The license validation options.</param>
+    /// <param name="revocationProvider">The license revocation provider, used for checking revoked licenses.</param>
     public LicenseKeyService(
         ISecretProvider secretProvider,
-        ILicenseValidator licenseValidator,
-        IOptions<LicenseValidationOptions> options)
+        LicenseValidationOptions options,
+        ILicenseValidator validator,
+        ILicenseRevocationProvider? revocationProvider = null)
     {
         _secretProvider = secretProvider;
-        _licenseValidator = licenseValidator;
-        _options = options?.Value ?? new LicenseValidationOptions();
+        _options = options;
+        _licenseValidator = validator;
+        _revocationProvider = revocationProvider;
     }
 
     /// <summary>
@@ -118,6 +123,11 @@ public class LicenseKeyService
             if (_options.ValidateLicenseFields)
             {
                 _licenseValidator.Validate(licenseInfo);
+            }
+
+            if (_revocationProvider?.IsRevoked(licenseInfo) == true)
+            {
+                return ValidationResult.Invalid("License has been revoked.", licenseInfo);
             }
 
             return ValidationResult.Valid(licenseInfo);

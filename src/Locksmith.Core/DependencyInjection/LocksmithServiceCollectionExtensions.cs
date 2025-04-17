@@ -1,4 +1,5 @@
 using Locksmith.Core.Config;
+using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
 using Locksmith.Core.Services;
 using Locksmith.Core.Validation;
@@ -37,26 +38,33 @@ public static class LocksmithServiceCollectionExtensions
         this IServiceCollection services,
         Action<LocksmithOptionsBuilder> configure)
     {
-        // Create a new LocksmithOptionsBuilder instance to configure Locksmith options.
         var builder = new LocksmithOptionsBuilder(services);
         configure(builder);
 
-        // Configure license validation options if provided.
         services.Configure(builder.ValidationOptions ?? (_ => { }));
 
-        // Add the secret provider to the service collection, using a default implementation if none is provided.
-        services.AddSingleton<ISecretProvider>(builder.SecretProvider ??
-                                               new InMemoryRotatingSecretProvider("default-secret"));
+        if (builder.SecretProvider == null)
+            throw new InvalidOperationException("A secret provider must be configured. Use `UseSecretProvider(...)`.");
+        services.AddSingleton<ISecretProvider>(builder.SecretProvider);
 
-        // Add the license validator to the service collection.
         services.AddSingleton<ILicenseValidator>(sp =>
         {
             var opts = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
             return new DefaultLicenseValidator(opts);
         });
 
-        // Add the LicenseKeyService to the service collection as a transient service.
-        services.AddTransient<LicenseKeyService>();
+        if (builder.RevocationProvider != null)
+            services.AddSingleton(builder.RevocationProvider);
+
+        services.AddTransient<LicenseKeyService>(sp =>
+        {
+            var secretProvider = sp.GetRequiredService<ISecretProvider>();
+            var options = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
+            var validator = sp.GetRequiredService<ILicenseValidator>();
+            var revocationProvider = sp.GetService<ILicenseRevocationProvider>();
+
+            return new LicenseKeyService(secretProvider, options, validator, revocationProvider);
+        });
 
         return services;
     }
