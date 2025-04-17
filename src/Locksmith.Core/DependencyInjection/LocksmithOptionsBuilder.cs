@@ -58,4 +58,21 @@ public class LocksmithOptionsBuilder
         ValidationOptions = configure;
         return this;
     }
+    
+    /// <summary>
+    /// Configures the required license scopes for validation and enforces their presence.
+    /// </summary>
+    /// <param name="scopes">An array of required license scopes.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.</returns>
+    public LocksmithOptionsBuilder RequireScopes(params string[] scopes)
+    {
+        ConfigureValidationOptions(opt =>
+        {
+            opt.EnforceScopes = true;
+            opt.RequiredScopes = scopes.ToList();
+        });
+
+        return this;
+    }
+
 }

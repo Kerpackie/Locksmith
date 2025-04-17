@@ -2,23 +2,33 @@ using Locksmith.Core.Enums;
 
 namespace Locksmith.Core.Models;
 
+/// <summary>
+/// Represents information about a license, including its holder, product, type, and scopes.
+/// </summary>
 public class LicenseInfo
 {
     /// <summary>
-    /// Name of the licence holder (e.g., individual or organisation).
+    /// Gets or sets the name of the license holder (e.g., individual or organization).
     /// </summary>
     public string Name { get; set; }
-    
+
     /// <summary>
-    /// The identifier for the product which the licence is for.
+    /// Gets or sets the identifier for the product that the license is associated with.
     /// </summary>
     public string ProductId { get; set; }
-    
+
     /// <summary>
-    /// The expiration date of the licence. Null means no expiration.
+    /// Gets or sets the expiration date of the license. A value of <c>null</c> indicates no expiration.
     /// </summary>
     public DateTime? ExpirationDate { get; set; }
-    
+
+    /// <summary>
+    /// Gets or sets the type of the license. Defaults to <see cref="LicenseType.Full"/>.
+    /// </summary>
     public LicenseType Type { get; set; } = LicenseType.Full;
 
+    /// <summary>
+    /// Gets or sets the list of scopes associated with the license. A value of <c>null</c> indicates no specific scopes.
+    /// </summary>
+    public List<string>? Scopes { get; set; }
 }
