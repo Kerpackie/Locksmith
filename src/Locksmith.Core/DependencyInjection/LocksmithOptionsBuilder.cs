@@ -74,5 +74,22 @@ public class LocksmithOptionsBuilder
 
         return this;
     }
-
+    
+    /// <summary>
+    /// Configures whether license limit validation should be enforced.
+    /// </summary>
+    /// <param name="enabled">
+    /// A boolean value indicating whether to enable or disable limit validation.
+    /// Defaults to <c>true</c>.
+    /// </param>
+    /// <returns>
+    /// The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.
+    /// </returns>
+    public LocksmithOptionsBuilder EnforceLimitValidation(bool enabled = true)
+    {
+        return ConfigureValidationOptions(opts =>
+        {
+            opts.EnforceLimitValidation = enabled;
+        });
+    }
 }

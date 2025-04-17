@@ -31,4 +31,11 @@ public class LicenseInfo
     /// Gets or sets the list of scopes associated with the license. A value of <c>null</c> indicates no specific scopes.
     /// </summary>
     public List<string>? Scopes { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a dictionary that defines limits for specific features or resources.
+    /// The key represents the feature/resource name, and the value represents the limit.
+    /// A value of <c>null</c> indicates no specific limits are defined.
+    /// </summary>
+    public Dictionary<string, int>? Limits { get; set; }
 }
