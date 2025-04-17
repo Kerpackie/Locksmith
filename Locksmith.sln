@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D1AB88A-FCD
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A2EC81B0-D3AF-49DA-AF01-0444C1A85B4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Locksmith.Licensing", "src\Locksmith.Licensing\Locksmith.Licensing.csproj", "{813DD669-3E6F-45AB-B375-D7E1483964F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{813DD669-3E6F-45AB-B375-D7E1483964F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{813DD669-3E6F-45AB-B375-D7E1483964F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{813DD669-3E6F-45AB-B375-D7E1483964F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{813DD669-3E6F-45AB-B375-D7E1483964F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,5 +38,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90} = {A2EC81B0-D3AF-49DA-AF01-0444C1A85B4B}
 		{56B9363F-E7F1-4B71-A2AA-324F1B9470C7} = {3D1AB88A-FCDD-4E58-B3FC-B00E96096DC3}
+		{813DD669-3E6F-45AB-B375-D7E1483964F3} = {3D1AB88A-FCDD-4E58-B3FC-B00E96096DC3}
 	EndGlobalSection
 EndGlobal
