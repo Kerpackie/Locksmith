@@ -8,6 +8,12 @@ namespace Locksmith.Core.Models;
 public class LicenseInfo
 {
     /// <summary>
+    /// Gets or sets the unique identifier for the license.
+    /// Defaults to a new GUID when the object is instantiated.
+    /// </summary>
+    public Guid LicenseId { get; set; } = Guid.NewGuid();
+    
+    /// <summary>
     /// Gets or sets the name of the license holder (e.g., individual or organization).
     /// </summary>
     public string Name { get; set; }

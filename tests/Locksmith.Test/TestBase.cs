@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Locksmith.Core.Config;
 using Locksmith.Core.Models;
+using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
 using Locksmith.Core.Services;
 using Locksmith.Core.Validation;
@@ -20,7 +21,8 @@ public abstract class TestBase
         IEnumerable<string>? additionalSecrets = null,
         Action<LicenseValidationOptions>? configureOptions = null,
         ISecretProvider? overrideSecretProvider = null,
-        ILicenseValidator? overrideValidator = null)
+        ILicenseValidator? overrideValidator = null,
+        ILicenseRevocationProvider? overrideRevocationProvider = null)
     {
         var services = new ServiceCollection();
 
@@ -28,6 +30,9 @@ public abstract class TestBase
             services.Configure(configureOptions);
         else
             services.Configure<LicenseValidationOptions>(_ => { });
+
+        services.AddSingleton(sp =>
+            sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value);
 
         if (overrideSecretProvider != null)
         {
@@ -52,6 +57,11 @@ public abstract class TestBase
             });
         }
 
+        if (overrideRevocationProvider != null)
+        {
+            services.AddSingleton(overrideRevocationProvider);
+        }
+
         services.AddTransient<LicenseKeyService>();
         return services.BuildServiceProvider();
     }
@@ -65,7 +75,7 @@ public abstract class TestBase
             ExpirationDate = expiration
         };
     }
-    
+
     protected FakeSecretProvider CreateFakeSecretProvider(string current = "fake-secret", params string[]? additional)
     {
         var provider = new FakeSecretProvider
@@ -87,5 +97,4 @@ public abstract class TestBase
     {
         return new FakeLicenseValidator { ForcedErrorMessage = failWithMessage };
     }
-
 }

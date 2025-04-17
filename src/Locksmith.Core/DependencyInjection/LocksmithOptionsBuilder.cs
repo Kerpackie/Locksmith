@@ -1,6 +1,10 @@
 using Locksmith.Core.Config;
+using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
+using Locksmith.Core.Services;
+using Locksmith.Core.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Locksmith.Core.DependencyInjection;
 
@@ -17,19 +21,26 @@ public class LocksmithOptionsBuilder
 
     /// <summary>
     /// Gets or sets the action used to configure license validation options.
-    /// This is an internal property and is not directly accessible outside the class.
     /// </summary>
     internal Action<LicenseValidationOptions>? ValidationOptions { get; private set; }
 
     /// <summary>
-    /// Gets or sets the secret provider used for license key operations.
-    /// This is an internal property and is not directly accessible outside the class.
+    /// Gets or sets the secret provider used for license security.
     /// </summary>
     internal ISecretProvider? SecretProvider { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LocksmithOptionsBuilder"/> class
-    /// with the specified service collection.
+    /// Gets or sets the license validator used to validate licenses.
+    /// </summary>
+    internal ILicenseValidator? Validator { get; private set; }
+
+    /// <summary>
+    /// Gets or sets the license revocation provider used to handle license revocation.
+    /// </summary>
+    internal ILicenseRevocationProvider? RevocationProvider { get; private set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocksmithOptionsBuilder"/> class.
     /// </summary>
     /// <param name="services">The service collection to which Locksmith services will be added.</param>
     public LocksmithOptionsBuilder(IServiceCollection services)
@@ -38,10 +49,10 @@ public class LocksmithOptionsBuilder
     }
 
     /// <summary>
-    /// Configures the secret provider to be used for license key operations.
+    /// Configures the secret provider to be used for license security.
     /// </summary>
-    /// <param name="provider">The secret provider implementation to use.</param>
-    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.</returns>
+    /// <param name="provider">The secret provider to use.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
     public LocksmithOptionsBuilder UseSecretProvider(ISecretProvider provider)
     {
         SecretProvider = provider;
@@ -49,21 +60,43 @@ public class LocksmithOptionsBuilder
     }
 
     /// <summary>
-    /// Configures the license validation options using the specified configuration action.
+    /// Configures the license validator to be used for license validation.
+    /// </summary>
+    /// <param name="validator">The license validator to use.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
+    public LocksmithOptionsBuilder UseLicenseValidator(ILicenseValidator validator)
+    {
+        Validator = validator;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the license revocation provider to be used for handling license revocation.
+    /// </summary>
+    /// <param name="provider">The license revocation provider to use.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
+    public LocksmithOptionsBuilder UseRevocationProvider(ILicenseRevocationProvider provider)
+    {
+        RevocationProvider = provider;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the license validation options.
     /// </summary>
     /// <param name="configure">An action to configure the <see cref="LicenseValidationOptions"/>.</param>
-    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.</returns>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
     public LocksmithOptionsBuilder ConfigureValidationOptions(Action<LicenseValidationOptions> configure)
     {
         ValidationOptions = configure;
         return this;
     }
-    
+
     /// <summary>
-    /// Configures the required license scopes for validation and enforces their presence.
+    /// Configures the required scopes for license validation.
     /// </summary>
-    /// <param name="scopes">An array of required license scopes.</param>
-    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.</returns>
+    /// <param name="scopes">The scopes to require.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
     public LocksmithOptionsBuilder RequireScopes(params string[] scopes)
     {
         ConfigureValidationOptions(opt =>
@@ -74,17 +107,12 @@ public class LocksmithOptionsBuilder
 
         return this;
     }
-    
+
     /// <summary>
-    /// Configures whether license limit validation should be enforced.
+    /// Configures whether limit validation should be enforced.
     /// </summary>
-    /// <param name="enabled">
-    /// A boolean value indicating whether to enable or disable limit validation.
-    /// Defaults to <c>true</c>.
-    /// </param>
-    /// <returns>
-    /// The current <see cref="LocksmithOptionsBuilder"/> instance for method chaining.
-    /// </returns>
+    /// <param name="enabled">A value indicating whether limit validation should be enforced. Defaults to <c>true</c>.</param>
+    /// <returns>The current <see cref="LocksmithOptionsBuilder"/> instance.</returns>
     public LocksmithOptionsBuilder EnforceLimitValidation(bool enabled = true)
     {
         return ConfigureValidationOptions(opts =>
