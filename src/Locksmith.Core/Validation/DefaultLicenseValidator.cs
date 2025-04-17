@@ -39,6 +39,7 @@ public class DefaultLicenseValidator : ILicenseValidator
         ValidateExpiration(licenseInfo);
         ValidateLicenseTypeRules(licenseInfo);
         ValidateLicenseScopes(licenseInfo);
+        ValidateLicenseLimits(licenseInfo);
     }
 
     /// <summary>
@@ -113,6 +114,22 @@ public class DefaultLicenseValidator : ILicenseValidator
             {
                 Handle("Required license scopes not present.");
             }
+        }
+    }
+
+    /// <summary>
+    /// Validates the license limits to ensure all defined limits are non-negative.
+    /// </summary>
+    /// <param name="licenseInfo">The license information to validate.</param>
+    /// <exception cref="LicenseValidationException">
+    /// Thrown if any limit value is negative.
+    /// </exception>
+    private void ValidateLicenseLimits(LicenseInfo licenseInfo)
+    {
+        if (_options.EnforceLimitValidation)
+        {
+            if (licenseInfo.Limits?.Any(kv => kv.Value < 0) == true)
+                throw new LicenseValidationException("Limit values must be non-negative.");
         }
     }
 

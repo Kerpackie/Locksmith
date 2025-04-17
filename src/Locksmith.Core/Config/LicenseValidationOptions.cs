@@ -46,4 +46,11 @@ public class LicenseValidationOptions
     /// include all scopes in this list to be considered valid.
     /// </summary>
     public List<string>? RequiredScopes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether limits on license features or resources
+    /// should be enforced during validation. If set to <c>true</c>, the license will
+    /// be validated against defined limits.
+    /// </summary>
+    public bool EnforceLimitValidation { get; set; } = false;
 }
