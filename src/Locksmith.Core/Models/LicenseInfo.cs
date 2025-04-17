@@ -38,4 +38,11 @@ public class LicenseInfo
     /// A value of <c>null</c> indicates no specific limits are defined.
     /// </summary>
     public Dictionary<string, int>? Limits { get; set; }
+
+    /// <summary>
+    /// Gets or sets a dictionary that contains metadata associated with the license.
+    /// The key represents the metadata field name, and the value represents the field value.
+    /// A value of <c>null</c> indicates no metadata is defined.
+    /// </summary>
+    public Dictionary<string, string>? Metadata { get; set; }
 }
