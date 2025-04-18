@@ -17,7 +17,7 @@ public class LicenseRevocationTests : TestBase
                 options.ValidateLicenseFields = false;
                 options.ThrowOnValidationError = false;
             },
-            overrideRevocationProvider: new ListRevocationProvider(revokedIds)
+            overrideRevocationProvider: new ListRevocationProvider2(revokedIds)
         );
 
         return service.GetRequiredService<LicenseKeyService>();
