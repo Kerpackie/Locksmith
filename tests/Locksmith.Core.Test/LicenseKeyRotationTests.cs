@@ -1,5 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using Locksmith.Core.Utils;
+using Locksmith.Licensing.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Locksmith.Licensing.Test;
 
@@ -20,7 +23,7 @@ public class LicenseKeyRotationTests : TestBase
         var result = serviceWithNew.Validate(key);
 
         Assert.True(result.IsValid);
-        Assert.Equal("Alice Example", result.LicenseInfo.Name);
+        Assert.Equal("Alice Example", result.Key.Name);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using Locksmith.Core.Revocation;
 using Locksmith.Licensing.Config;
 using Locksmith.Licensing.Enums;
 using Locksmith.Licensing.Exceptions;
@@ -15,14 +16,16 @@ public class DefaultLicenseValidator : ILicenseValidator
     /// The options used for license validation, such as clock skew tolerance.
     /// </summary>
     private readonly LicenseValidationOptions _options;
+    private readonly IKeyRevocationProvider<LicenseDescriptor>? _revocation;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultLicenseValidator"/> class.
     /// </summary>
     /// <param name="options">The license validation options. If null, default options are used.</param>
-    public DefaultLicenseValidator(LicenseValidationOptions options = null)
+    public DefaultLicenseValidator(LicenseValidationOptions options, IKeyRevocationProvider<LicenseDescriptor>? revocation = null)
     {
-        _options = options ?? new LicenseValidationOptions();
+        _options = options;
+        _revocation = revocation;
     }
 
     /// <summary>
@@ -40,6 +43,7 @@ public class DefaultLicenseValidator : ILicenseValidator
         ValidateLicenseTypeRules(licenseInfo);
         ValidateLicenseScopes(licenseInfo);
         ValidateLicenseLimits(licenseInfo);
+        ValidateRevocation(licenseInfo);
     }
 
     /// <summary>
@@ -130,6 +134,14 @@ public class DefaultLicenseValidator : ILicenseValidator
         {
             if (licenseInfo.Limits?.Any(kv => kv.Value < 0) == true)
                 throw new LicenseValidationException("Limit values must be non-negative.");
+        }
+    }
+    
+    private void ValidateRevocation(LicenseDescriptor licenseInfo)
+    {
+        if (_revocation?.IsRevoked(licenseInfo) == true)
+        {
+            Handle("License has been revoked.");
         }
     }
 

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Locksmith.Core", "src\Locksmith.Core\Locksmith.Core.csproj", "{56B9363F-E7F1-4B71-A2AA-324F1B9470C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Locksmith.Test", "tests\Locksmith.Test\Locksmith.Test.csproj", "{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Locksmith.Core.Test", "tests\Locksmith.Core.Test\Locksmith.Core.Test.csproj", "{8C24B2F3-D6FD-4EF1-AA79-B151D69E1E90}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D1AB88A-FCDD-4E58-B3FC-B00E96096DC3}"
 EndProject

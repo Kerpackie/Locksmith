@@ -2,6 +2,7 @@ using Locksmith.Core.Config;
 using Locksmith.Core.Models;
 using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
+using Locksmith.Core.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Locksmith.Core.DependencyInjection;
@@ -18,6 +19,9 @@ public interface IKeyOptionsBuilder<TOptions>
     IKeyOptionsBuilder<TOptions> EnforceLimitValidation(bool enabled = true);
 
     IKeyOptionsBuilder<TOptions> UseRevocationProvider<TDescriptor>(IKeyRevocationProvider<TDescriptor> provider)
+        where TDescriptor : KeyDescriptor;
+    
+    IKeyOptionsBuilder<TOptions> UseValidator<TDescriptor>(IKeyValidator<TDescriptor> validator)
         where TDescriptor : KeyDescriptor;
 
 }

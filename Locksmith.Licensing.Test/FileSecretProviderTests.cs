@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Locksmith.Core.Security;
 
 namespace Locksmith.Licensing.Test;
 

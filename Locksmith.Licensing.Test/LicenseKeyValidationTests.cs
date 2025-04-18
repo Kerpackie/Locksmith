@@ -1,3 +1,6 @@
+using Locksmith.Licensing.Services;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseKeyValidationTests : TestBase
@@ -36,7 +39,7 @@ public class LicenseKeyValidationTests : TestBase
 
         Assert.False(result.IsValid);
         Assert.True(result.IsExpired);
-        Assert.Equal("License has expired.", result.Error);
+        Assert.Equal("Key has expired.", result.Error);
     }
 
     [Fact]
@@ -73,7 +76,7 @@ public class LicenseKeyValidationTests : TestBase
 
         Assert.False(result.IsValid);
         Assert.True(result.IsMalformed);
-        Assert.Null(result.LicenseInfo);
+        Assert.Null(result.Key);
     }
     
     [Fact]

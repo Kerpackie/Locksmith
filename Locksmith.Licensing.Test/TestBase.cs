@@ -4,9 +4,13 @@ using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
 using Locksmith.Core.Validation;
 using Locksmith.Licensing.Config;
+using Locksmith.Licensing.DependencyInjection;
+using Locksmith.Licensing.Models;
 using Locksmith.Licensing.Revocation;
+using Locksmith.Licensing.Services;
 using Locksmith.Licensing.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Locksmith.Licensing.Test;
@@ -16,62 +20,76 @@ public abstract class TestBase
     protected const string DefaultSecret = "Shhhh!SuperSecretKey123DontTellAnyone!";
 
     protected ServiceProvider BuildServiceProvider(
-        string currentSecret = DefaultSecret,
-        IEnumerable<string>? additionalSecrets = null,
-        Action<LicenseValidationOptions>? configureOptions = null,
-        ISecretProvider? overrideSecretProvider = null,
-        ILicenseValidator? overrideValidator = null,
-        ILicenseRevocationProvider? overrideRevocationProvider = null)
+    string currentSecret = DefaultSecret,
+    IEnumerable<string>? additionalSecrets = null,
+    Action<LicenseValidationOptions>? configureOptions = null,
+    ISecretProvider? overrideSecretProvider = null,
+    IKeyValidator<LicenseDescriptor>? overrideValidator = null,
+    ILicenseRevocationProvider? overrideRevocationProvider = null)
+{
+    var services = new ServiceCollection();
+
+    // configure options
+    if (configureOptions != null)
+        services.Configure(configureOptions);
+    else
+        services.Configure<LicenseValidationOptions>(_ => { });
+
+    services.AddSingleton(sp =>
+        sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value);
+
+    // secret provider
+    if (overrideSecretProvider != null)
     {
-        var services = new ServiceCollection();
-
-        if (configureOptions != null)
-            services.Configure(configureOptions);
-        else
-            services.Configure<LicenseValidationOptions>(_ => { });
-
-        services.AddSingleton(sp =>
-            sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value);
-
-        if (overrideSecretProvider != null)
-        {
-            services.AddSingleton(overrideSecretProvider);
-        }
-        else
-        {
-            services.AddSingleton<ISecretProvider>(
-                new DefaultSecretProvider(currentSecret, additionalSecrets));
-        }
-
-        if (overrideValidator != null)
-        {
-            services.AddSingleton(overrideValidator);
-        }
-        else
-        {
-            services.AddSingleton<ILicenseValidator>(sp =>
-            {
-                var opts = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
-                return new DefaultLicenseValidator(opts);
-            });
-        }
-
-        if (overrideRevocationProvider != null)
-        {
-            services.AddSingleton(overrideRevocationProvider);
-        }
-
-        services.AddTransient<LicenseKeyService>();
-        return services.BuildServiceProvider();
+        services.AddSingleton(overrideSecretProvider);
+    }
+    else
+    {
+        services.AddSingleton<ISecretProvider>(
+            new DefaultSecretProvider(currentSecret, additionalSecrets));
     }
 
-    protected LicenseInfo CreateTestLicense(DateTime? expiration = null)
+    // validator: register under both ILicenseValidator and IKeyValidator<LicenseDescriptor>
+    if (overrideValidator != null)
     {
-        return new LicenseInfo
+        services.AddSingleton<IKeyValidator<LicenseDescriptor>>(overrideValidator);
+        services.AddSingleton<ILicenseValidator>(sp =>
+            (ILicenseValidator)sp.GetRequiredService<IKeyValidator<LicenseDescriptor>>());
+    }
+    else
+    {
+        services.AddSingleton<ILicenseValidator>(sp =>
+            new DefaultLicenseValidator(
+                sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value
+            )
+        );
+        services.AddSingleton<IKeyValidator<LicenseDescriptor>>(sp =>
+            sp.GetRequiredService<ILicenseValidator>());
+    }
+
+    // revocation provider: register under both ILicenseRevocationProvider and IKeyRevocationProvider<LicenseDescriptor>
+    if (overrideRevocationProvider != null)
+    {
+        services.AddSingleton<ILicenseRevocationProvider>(overrideRevocationProvider);
+        services.AddSingleton<IKeyRevocationProvider<LicenseDescriptor>>(sp =>
+            sp.GetRequiredService<ILicenseRevocationProvider>());
+    }
+
+    // finally, the service itself
+    services.AddTransient<LicenseKeyService>();
+
+    return services.BuildServiceProvider();
+}
+
+
+
+    protected LicenseDescriptor CreateTestLicense(DateTime? expiration = null)
+    {
+        return new LicenseDescriptor
         {
             Name = "Alice Example",
             ProductId = "com.example.product",
-            ExpirationDate = expiration
+            Expiration = expiration
         };
     }
 

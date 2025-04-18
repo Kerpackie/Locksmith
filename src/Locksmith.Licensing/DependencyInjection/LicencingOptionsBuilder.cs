@@ -2,11 +2,13 @@ using Locksmith.Core.DependencyInjection;
 using Locksmith.Core.Models;
 using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
+using Locksmith.Core.Validation;
 using Locksmith.Licensing.Config;
 using Locksmith.Licensing.Models;
 using Locksmith.Licensing.Revocation;
 using Locksmith.Licensing.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Locksmith.Licensing.DependencyInjection;
 
@@ -49,7 +51,32 @@ public class LicenseOptionsBuilder : IKeyOptionsBuilder<LicenseValidationOptions
         }
         return this;
     }
-    
+
+    public IKeyOptionsBuilder<LicenseValidationOptions> UseValidator<TDescriptor>(IKeyValidator<TDescriptor> validator)
+        where TDescriptor : KeyDescriptor
+    {
+        if (validator is ILicenseValidator licenseValidator)
+        {
+            Services.AddSingleton(licenseValidator);
+        }
+        return this;
+    }
+
+    public LicenseOptionsBuilder UseDefaultValidator()
+    {
+        Services.AddSingleton<IKeyValidator<LicenseDescriptor>>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
+            return new DefaultLicenseValidator(options);
+        });
+
+        Services.AddSingleton<ILicenseValidator>(sp =>
+            (ILicenseValidator)sp.GetRequiredService<IKeyValidator<LicenseDescriptor>>());
+
+        return this;
+    }
+
+
     public LicenseOptionsBuilder RequireScopes(params string[] scopes)
     {
         ConfigureValidationOptions(opt =>

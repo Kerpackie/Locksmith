@@ -1,14 +1,17 @@
+using Locksmith.Core.Extensions;
+using Locksmith.Licensing.Models;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseUsageLimitTests : TestBase
 {
-    private LicenseInfo CreateLicense(Dictionary<string, int>? limits = null)
+    private LicenseDescriptor CreateLicense(Dictionary<string, int>? limits = null)
     {
-        return new LicenseInfo
+        return new LicenseDescriptor
         {
             Name = "Usage Test",
             ProductId = "usage.test",
-            ExpirationDate = DateTime.Now.AddDays(10),
+            Expiration = DateTime.Now.AddDays(10),
             Limits = limits
         };
     }
@@ -80,14 +83,14 @@ public class LicenseUsageLimitTests : TestBase
     [Fact]
     public void HasLimit_Should_Handle_Null_License_Gracefully()
     {
-        LicenseInfo? license = null;
+        LicenseDescriptor? license = null;
         Assert.False(license.HasLimit("Any", out _));
     }
     
     [Fact]
     public void HasLimit_Should_Handle_Null_Limits_Gracefully()
     {
-        var license = new LicenseInfo
+        var license = new LicenseDescriptor
         {
             Limits = null
         };

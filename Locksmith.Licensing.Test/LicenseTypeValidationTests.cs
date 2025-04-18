@@ -1,3 +1,8 @@
+using Locksmith.Licensing.Enums;
+using Locksmith.Licensing.Models;
+using Locksmith.Licensing.Services;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseTypeValidationTests : TestBase
@@ -10,14 +15,14 @@ public class LicenseTypeValidationTests : TestBase
         return provider.GetRequiredService<LicenseKeyService>();
     }
 
-    private LicenseInfo CreateLicense(LicenseType type, DateTime? expiration = null)
+    private LicenseDescriptor CreateLicense(LicenseType type, DateTime? expiration = null)
     {
-        return new LicenseInfo()
+        return new LicenseDescriptor()
         {
             Name = "Type Test",
             ProductId = "type-product",
             Type = type,
-            ExpirationDate = expiration
+            Expiration = expiration
         };
     }
 

@@ -1,14 +1,17 @@
+using Locksmith.Licensing.Extensions;
+using Locksmith.Licensing.Models;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseFeatureFlagTests : TestBase
 {
-    private LicenseInfo CreateLicense(params string[] scopes)
+    private LicenseDescriptor CreateLicense(params string[] scopes)
     {
-        return new LicenseInfo()
+        return new LicenseDescriptor
         {
             Name = "Feature Test",
             ProductId = "feature-product",
-            ExpirationDate = DateTime.UtcNow.AddDays(10),
+            Expiration = DateTime.UtcNow.AddDays(10),
             Scopes = scopes.ToList()
         };
     }
@@ -44,14 +47,14 @@ public class LicenseFeatureFlagTests : TestBase
     [Fact]
     public void HasFeature_Should_Null_License_Gracefully()
     {
-        LicenseInfo? license = null;
+        LicenseDescriptor? license = null;
         Assert.False(license.HasFeature("anything"));
     }
 
     [Fact]
     public void HasFeature_Should_Handle_Null_Scopes_Gracefully()
     {
-        var license = new LicenseInfo
+        var license = new LicenseDescriptor
         {
             Scopes = null
         };

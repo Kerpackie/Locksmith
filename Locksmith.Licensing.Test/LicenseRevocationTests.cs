@@ -1,3 +1,8 @@
+using Locksmith.Licensing.Models;
+using Locksmith.Licensing.Revocation;
+using Locksmith.Licensing.Services;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseRevocationTests : TestBase
@@ -17,16 +22,16 @@ public class LicenseRevocationTests : TestBase
         return service.GetRequiredService<LicenseKeyService>();
     }
 
-    private LicenseInfo CreateLicense(out Guid licenseId)
+    private LicenseDescriptor CreateLicense(out Guid licenseId)
     {
-        var license = new LicenseInfo
+        var license = new LicenseDescriptor
         {
             Name = "Revoked User",
             ProductId = "revoked-product",
-            ExpirationDate = DateTime.UtcNow.AddDays(5)
+            Expiration = DateTime.UtcNow.AddDays(5)
         };
 
-        licenseId = license.LicenseId;
+        licenseId = license.KeyId;
         return license;
     }
 
@@ -40,7 +45,7 @@ public class LicenseRevocationTests : TestBase
         var result = service.Validate(key);
 
         Assert.False(result.IsValid);
-        Assert.Equal("License has been revoked.", result.Error);
+        Assert.Equal("Key has been revoked.", result.Error);
     }
 
     [Fact]
@@ -53,7 +58,7 @@ public class LicenseRevocationTests : TestBase
         var result = service.Validate(key);
 
         Assert.True(result.IsValid);
-        Assert.Equal(licenseId, result.LicenseInfo.LicenseId);
+        Assert.Equal(licenseId, result.Key.KeyId);
     }
 
     [Fact]

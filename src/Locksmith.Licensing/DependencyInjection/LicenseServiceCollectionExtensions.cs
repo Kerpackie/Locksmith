@@ -1,5 +1,8 @@
+using Locksmith.Core.Revocation;
 using Locksmith.Core.Security;
+using Locksmith.Core.Validation;
 using Locksmith.Licensing.Config;
+using Locksmith.Licensing.Models;
 using Locksmith.Licensing.Services;
 using Locksmith.Licensing.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,27 +17,27 @@ public static class LicensingServiceCollectionExtensions
         var builder = new LicenseOptionsBuilder(services);
         configure(builder);
 
-        // Configure options
+        // Configure LicenseValidationOptions
         services.Configure(builder.ValidationOptions ?? (_ => { }));
 
-        // Provide LicenseValidationOptions directly if needed
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value);
-
-        // Required: Secret provider
+        // Required: Secret Provider
         if (builder.SecretProvider == null)
-            throw new InvalidOperationException("A secret provider must be configured.");
+            throw new InvalidOperationException("A secret provider must be configured using UseSecretProvider(...)");
         services.AddSingleton<ISecretProvider>(builder.SecretProvider);
 
-        // Optional: Revocation
+        // Optional: Revocation Provider
         if (builder.RevocationProvider != null)
-            services.AddSingleton(builder.RevocationProvider);
+            services.AddSingleton<IKeyRevocationProvider<LicenseDescriptor>>(builder.RevocationProvider);
 
-        // Validator (or default)
+        // Validator
         services.AddSingleton<ILicenseValidator>(sp =>
-            builder.Validator ?? new DefaultLicenseValidator(
-                sp.GetRequiredService<LicenseValidationOptions>()
-            ));
+        {
+            var options = sp.GetRequiredService<IOptions<LicenseValidationOptions>>().Value;
+            var revocation = sp.GetService<IKeyRevocationProvider<LicenseDescriptor>>();
+            return new DefaultLicenseValidator(options, revocation);
+        });
 
+        // License key service
         services.AddTransient<LicenseKeyService>();
 
         return services;

@@ -1,3 +1,9 @@
+using Locksmith.Licensing.Config;
+using Locksmith.Licensing.Models;
+using Locksmith.Licensing.Services;
+using Locksmith.Licensing.Validation;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Locksmith.Licensing.Test;
 
 public class LicenseScopeValidationTests : TestBase
@@ -13,13 +19,13 @@ public class LicenseScopeValidationTests : TestBase
             .GetRequiredService<LicenseKeyService>();
     }
 
-    private LicenseInfo CreateLicense(IEnumerable<string>? scopes = null)
+    private LicenseDescriptor CreateLicense(IEnumerable<string>? scopes = null)
     {
-        return new LicenseInfo
+        return new LicenseDescriptor
         {
             Name = "Scoped User",
             ProductId = "scoped-product",
-            ExpirationDate = DateTime.UtcNow.AddDays(10),
+            Expiration = DateTime.UtcNow.AddDays(10),
             Scopes = scopes?.ToList()
         };
     }
@@ -33,7 +39,7 @@ public class LicenseScopeValidationTests : TestBase
         var result = service.TryGenerate(license);
         Assert.True(result.Success);
 
-        var validated = service.Validate(result.LicenseKey);
+        var validated = service.Validate(result.EncodedKey);
         Assert.True(validated.IsValid);
     }
 
@@ -41,6 +47,7 @@ public class LicenseScopeValidationTests : TestBase
     public void License_Missing_Required_Scope_Should_Fail()
     {
         var genService = BuildServiceProvider(
+            overrideValidator: new DefaultLicenseValidator(new LicenseValidationOptions()),
             configureOptions: opts =>
             {
                 opts.EnforceScopes = true;
@@ -55,7 +62,7 @@ public class LicenseScopeValidationTests : TestBase
         var result = genService.TryGenerate(license);
         Assert.True(result.Success);
         
-        var validated = service.Validate(result.LicenseKey);
+        var validated = service.Validate(result.EncodedKey);
         Assert.False(validated.IsValid);
         Assert.Equal("Required license scopes not present.", validated.Error);
     }
@@ -69,7 +76,7 @@ public class LicenseScopeValidationTests : TestBase
         var result = service.TryGenerate(license);
         Assert.True(result.Success);
 
-        var validated = service.Validate(result.LicenseKey!);
+        var validated = service.Validate(result.EncodedKey!);
         Assert.True(validated.IsValid);
     }
 
@@ -91,7 +98,7 @@ public class LicenseScopeValidationTests : TestBase
         var result = genService.TryGenerate(license);
         Assert.True(result.Success);
 
-        var validated = service.Validate(result.LicenseKey!);
+        var validated = service.Validate(result.EncodedKey!);
         Assert.False(validated.IsValid);
         Assert.Equal("Required license scopes not present.", validated.Error);
     }
@@ -105,7 +112,7 @@ public class LicenseScopeValidationTests : TestBase
         var result = service.TryGenerate(license);
         Assert.True(result.Success);
 
-        var validated = service.Validate(result.LicenseKey!);
+        var validated = service.Validate(result.EncodedKey!);
         Assert.True(validated.IsValid);
     }
     
