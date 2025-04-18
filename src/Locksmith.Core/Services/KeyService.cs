@@ -43,7 +43,7 @@ public class KeyService<T> where T : KeyDescriptor
             if (descriptor == null)
                 return KeyValidationResult<T>.Fail("Malformed payload.");
 
-            foreach (var secret in _secretProvider.GetAllSecrets())
+            foreach (var secret in _secretProvider.GetAllValidationSecrets())
             {
                 var expected = ComputeHmac(payloadBytes, secret);
                 if (CryptographicOperations.FixedTimeEquals(expected, signatureBytes))

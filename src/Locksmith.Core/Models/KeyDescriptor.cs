@@ -30,4 +30,11 @@ public abstract class KeyDescriptor
     /// A value of <c>null</c> indicates no metadata is defined.
     /// </summary>
     public Dictionary<string, string>? Metadata { get; set; }
+
+    /// <summary>
+    /// Gets or sets a dictionary that defines limits for specific features or resources.
+    /// The key represents the feature/resource name, and the value represents the limit.
+    /// A value of <c>null</c> indicates no specific limits are defined.
+    /// </summary>
+    public Dictionary<string, int>? Limits { get; set; }
 }
